@@ -10,8 +10,25 @@
 <body><div id="app">
 <header class="topbar"><div class="brand">🏗️ برج تعادلی</div><div class="stats"><div class="stat"><small>امتیاز</small><b id="score">۰</b></div><div class="stat"><small>بهترین</small><b id="highScore">۰</b></div><div class="stat"><small>طبقه</small><b id="height">۰</b></div></div><div class="actions"><button id="soundBtn" class="iconbtn" aria-label="صدا">🔊</button><button id="pauseBtn" class="iconbtn" aria-label="مکث">Ⅱ</button></div></header>
 <main class="stage" id="stage"><canvas id="gameCanvas" role="img" aria-label="صفحه بازی برج تعادلی"></canvas><div class="tip" id="tip">برای رها کردن مکعب، صفحه را لمس کن 👆</div></main><footer class="bottom"><span class="pill">🎯 روی مرکز تعادل فرود بیا</span><span id="statusText" aria-live="polite">در حال تأیید ورود...</span></footer>
-<section id="startModal" class="modal"><div class="card"><div class="emoji">🏗️</div><h1>برج تعادلی</h1><p>مکعب را در لحظهٔ مناسب رها کن تا دقیقاً روی مرکز تعادل قرار گیرد. هر فرود، برج را واقعاً تکان می‌دهد؛ مراقب واژگونی باش!</p><div class="keys">با لمس صفحه یا کلید Space مکعب را رها کن<br>برای نتیجهٔ بهتر، قلاب را روی مرکز برج تنظیم کن</div><p id="authHint" class="sub" aria-live="polite">برای شروع امن، بازی را از داخل محیط ایتا باز کنید.</p><button id="startBtn" class="primary" disabled>در حال بررسی...</button></div></section>
+<section id="startModal" class="modal"><div class="card"><div class="emoji">🏗️</div><h1>برج تعادلی</h1><p>مکعب را در لحظهٔ مناسب رها کن تا دقیقاً روی مرکز تعادل قرار گیرد. هر فرود، برج را واقعاً تکان می‌دهد؛ مراقب واژگونی باش!</p><div class="keys">با لمس صفحه یا کلید Space مکعب را رها کن<br>برای نتیجهٔ بهتر، قلاب را روی مرکز برج تنظیم کن</div><p id="authHint" class="sub" aria-live="polite">برای شروع امن، بازی را از داخل محیط ایتا باز کنید.</p><button id="startBtn" class="primary" disabled>در حال بررسی...</button><script src="https://myadino.ir/widget/adly-widget.js"></script>
+<script>
+  AdlyWidget.init({
+    apiKey: 'secret-89a41962',
+    containerId: 'adly-container',
+    barnamk: 'Borg_app',
+    appRef: 173
+  });
+</script>
+<div id="adly-container"></div></div></section>
 <section id="pauseModal" class="modal hidden"><div class="card"><div class="emoji">⏸️</div><h1>بازی مکث شد</h1><p>برج سر جایش منتظر توست!</p><button id="resumeBtn" class="primary">ادامهٔ بازی</button><button id="pauseMenuBtn" class="secondary">بازگشت به منو</button></div></section>
-<section id="reviveModal" class="modal hidden"><div class="card"><div class="emoji">✨</div><h1>یک فرصت دیگر؟</h1><p>با تماشای تبلیغ، برجت را از همین‌جا ادامه بده.</p><div id="reviveCountdown" class="gameover-score">۳۰</div><button id="reviveBtn" class="primary" disabled>ادامه با تبلیغ</button><button id="cancelReviveBtn" class="secondary">لغو و پایان بازی</button></div></section>
-<section id="gameOverModal" class="modal hidden"><div class="card"><div class="emoji">🫨</div><h1>برج فرو ریخت!</h1><p>این بار برجت تا اینجا دوام آورد:</p><div class="gameover-score"><div><b id="finalScore">۰</b><small>امتیاز</small></div><div><b id="finalHeight">۰</b><small>طبقه</small></div></div><button id="retryBtn" class="primary">دوباره بساز 🧱</button><button id="shareBtn" class="secondary">اشتراک‌گذاری نتیجه</button><button id="overMenuBtn" class="secondary">منوی اصلی</button></div></section>
-</div><script src="game.js?v=revive-gate-20261115"></script></body></html>
+<section id="gameOverModal" class="modal hidden"><div class="card"><div class="emoji">🫨</div><h1>برج فرو ریخت!</h1><p>این بار برجت تا اینجا دوام آورد:</p><div class="gameover-score"><div><b id="finalScore">۰</b><small>امتیاز</small></div><div><b id="finalHeight">۰</b><small>طبقه</small></div></div><button id="retryBtn" class="primary">دوباره بساز 🧱</button><script src="https://myadino.ir/widget/adly-widget.js"></script>
+<script>
+  AdlyWidget.init({
+    apiKey: 'secret-89a41962',
+    containerId: 'adly-container',
+    barnamk: 'Borg_app',
+    appRef: 173
+  });
+</script>
+<div id="adly-container"></div><button id="shareBtn" class="secondary">اشتراک‌گذاری نتیجه</button><button id="overMenuBtn" class="secondary">منوی اصلی</button></div></section>
+</div><script src="game.js?v=eitaa-ready-20261111"></script></body></html>
