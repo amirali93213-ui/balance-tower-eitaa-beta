@@ -7,37 +7,10 @@
 <style>
 :root{--ink:#28445a;--muted:#7190a1;--panel:#ffffffd9;--pink:#ff91aa;--mint:#8ce1ce;--blue:#82c9f5;--yellow:#ffd66f}*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;font-family:Tahoma,"Vazirmatn",sans-serif;color:var(--ink);background:linear-gradient(180deg,#c9efff,#f4fcff 58%,#e9f8ff);touch-action:manipulation}body{padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}#app{height:100dvh;min-height:400px;display:flex;flex-direction:column;max-width:780px;margin:auto;position:relative;padding:10px 12px 12px}.topbar{display:flex;align-items:center;justify-content:space-between;gap:8px;z-index:2}.brand{font-weight:900;font-size:18px;white-space:nowrap}.stats{display:flex;gap:7px;align-items:center}.stat{background:#ffffffb8;border:1px solid #fff;border-radius:14px;padding:6px 10px;min-width:62px;text-align:center;box-shadow:0 3px 12px #8bb9ce22}.stat small{display:block;color:var(--muted);font-size:10px}.stat b{font-size:15px}.actions{display:flex;gap:6px}.iconbtn{border:0;color:var(--ink);background:#fff;border-radius:12px;width:39px;height:39px;font-size:17px;box-shadow:0 4px 12px #6597ac22;cursor:pointer}.stage{position:relative;flex:1;min-height:0;margin:10px 0;border-radius:28px;overflow:hidden;border:2px solid #ffffffb8;box-shadow:0 12px 35px #63a8c633;background:linear-gradient(#d8f4ff 0,#e9faff 65%,#d2f0ed 100%)}canvas{display:block;width:100%;height:100%;touch-action:none}.tip{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);background:#ffffffc9;padding:8px 15px;border-radius:999px;font-size:12px;font-weight:bold;white-space:nowrap;pointer-events:none;box-shadow:0 3px 10px #5491a422}.bottom{display:flex;justify-content:space-between;align-items:center;color:#6e8b9a;font-size:11px;padding:0 4px}.pill{border-radius:20px;background:#ffffffa8;padding:5px 9px}.modal{position:absolute;inset:0;z-index:5;background:#21445b55;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)}.modal.hidden{display:none}.card{width:min(100%,390px);background:#fff;border-radius:28px;padding:25px 22px;text-align:center;box-shadow:0 20px 60px #224e6944;border:3px solid #ffffff}.emoji{font-size:48px;line-height:1.2}.card h1{font-size:25px;margin:10px 0 7px}.card p{line-height:1.9;font-size:14px;color:#648091;margin:8px 0 19px}.card .sub{font-size:12px}.primary,.secondary{width:100%;border:0;border-radius:16px;padding:14px;font-family:inherit;font-weight:900;font-size:16px;cursor:pointer}.primary{background:linear-gradient(135deg,#ff9db3,#ffbd9b);color:#573848;box-shadow:0 7px 0 #ec8199}.primary:disabled{opacity:.55;cursor:not-allowed;box-shadow:none}.secondary{margin-top:10px;background:#ecf8fc;color:#486579}.keys{background:#f3fbfd;padding:9px;border-radius:12px;color:#7190a1;font-size:11px}.gameover-score{display:flex;justify-content:center;gap:22px;margin:14px}.gameover-score b{display:block;font-size:22px;color:#385a70}.shake{animation:shake .35s}@keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}@media(max-width:480px){#app{padding-left:8px;padding-right:8px}.brand{font-size:15px}.stat{padding:5px 7px;min-width:51px}.stat b{font-size:13px}.stats{gap:4px}.iconbtn{width:35px;height:35px}}
 </style></head>
-<body><div id="app">  <script src="https://myadino.ir/widget/adly-widget.js"></script>
-<script>
-  AdlyWidget.init({
-    apiKey: 'cf69cecf31fc676301fe1e99977b3092',
-    containerId: 'adly-container',
-    barnamk: 'Borg_app',
-    appRef: 173
-  });
-</script>
-<div id="adly-container"></div>
+<body><div id="app">
 <header class="topbar"><div class="brand">🏗️ برج تعادلی</div><div class="stats"><div class="stat"><small>امتیاز</small><b id="score">۰</b></div><div class="stat"><small>بهترین</small><b id="highScore">۰</b></div><div class="stat"><small>طبقه</small><b id="height">۰</b></div></div><div class="actions"><button id="soundBtn" class="iconbtn" aria-label="صدا">🔊</button><button id="pauseBtn" class="iconbtn" aria-label="مکث">Ⅱ</button></div></header>
 <main class="stage" id="stage"><canvas id="gameCanvas" role="img" aria-label="صفحه بازی برج تعادلی"></canvas><div class="tip" id="tip">برای رها کردن مکعب، صفحه را لمس کن 👆</div></main><footer class="bottom"><span class="pill">🎯 روی مرکز تعادل فرود بیا</span><span id="statusText" aria-live="polite">در حال تأیید ورود...</span></footer>
-<section id="startModal" class="modal"><div class="card"><div class="emoji">🏗️</div><h1>برج تعادلی</h1><p>مکعب را در لحظهٔ مناسب رها کن تا دقیقاً روی مرکز تعادل قرار گیرد. هر فرود، برج را واقعاً تکان می‌دهد؛ مراقب واژگونی باش!</p><div class="keys">با لمس صفحه یا کلید Space مکعب را رها کن<br>برای نتیجهٔ بهتر، قلاب را روی مرکز برج تنظیم کن</div><p id="authHint" class="sub" aria-live="polite">برای شروع امن، بازی را از داخل محیط ایتا باز کنید.</p><button id="startBtn" class="primary" disabled>در حال بررسی...</button><script src="https://myadino.ir/widget/adly-widget.js"></script>
-<script>
-  AdlyWidget.init({
-    apiKey: 'secret-89a41962',
-    containerId: 'adly-container',
-    barnamk: 'Borg_app',
-    appRef: 173
-  });
-</script>
-<div id="adly-container"></div></div></section>
+<section id="startModal" class="modal"><div class="card"><div class="emoji">🏗️</div><h1>برج تعادلی</h1><p>مکعب را در لحظهٔ مناسب رها کن تا دقیقاً روی مرکز تعادل قرار گیرد. هر فرود، برج را واقعاً تکان می‌دهد؛ مراقب واژگونی باش!</p><div class="keys">با لمس صفحه یا کلید Space مکعب را رها کن<br>برای نتیجهٔ بهتر، قلاب را روی مرکز برج تنظیم کن</div><p id="authHint" class="sub" aria-live="polite">برای شروع امن، بازی را از داخل محیط ایتا باز کنید.</p><button id="startBtn" class="primary" disabled>در حال بررسی...</button></div></section>
 <section id="pauseModal" class="modal hidden"><div class="card"><div class="emoji">⏸️</div><h1>بازی مکث شد</h1><p>برج سر جایش منتظر توست!</p><button id="resumeBtn" class="primary">ادامهٔ بازی</button><button id="pauseMenuBtn" class="secondary">بازگشت به منو</button></div></section>
-<section id="gameOverModal" class="modal hidden"><div class="card"><div class="emoji">🫨</div><h1>برج فرو ریخت!</h1><p>این بار برجت تا اینجا دوام آورد:</p><div class="gameover-score"><div><b id="finalScore">۰</b><small>امتیاز</small></div><div><b id="finalHeight">۰</b><small>طبقه</small></div></div><button id="retryBtn" class="primary">دوباره بساز 🧱</button><script src="https://myadino.ir/widget/adly-widget.js"></script>
-<script>
-  AdlyWidget.init({
-    apiKey: 'secret-89a41962',
-    containerId: 'adly-container',
-    barnamk: 'Borg_app',
-    appRef: 173
-  });
-</script>
-<div id="adly-container"></div><button id="shareBtn" class="secondary">#adly-container</button><button id="overMenuBtn" class="secondary">منوی اصلی</button></div></section>
+<section id="gameOverModal" class="modal hidden"><div class="card"><div class="emoji">🫨</div><h1>برج فرو ریخت!</h1><p>این بار برجت تا اینجا دوام آورد:</p><div class="gameover-score"><div><b id="finalScore">۰</b><small>امتیاز</small></div><div><b id="finalHeight">۰</b><small>طبقه</small></div></div><button id="retryBtn" class="primary">دوباره بساز 🧱</button><button id="shareBtn" class="secondary">اشتراک‌گذاری نتیجه</button><button id="overMenuBtn" class="secondary">منوی اصلی</button></div></section>
 </div><script src="game.js?v=eitaa-ready-20261111"></script></body></html>
