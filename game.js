@@ -3,86 +3,63 @@ if(typeof CanvasRenderingContext2D!=='undefined'&&!CanvasRenderingContext2D.prot
 const $=id=>document.getElementById(id),canvas=$('gameCanvas'),ctx=canvas.getContext('2d'),stage=$('stage');
 const ui={score:$('score'),high:$('highScore'),height:$('height'),finalScore:$('finalScore'),finalHeight:$('finalHeight'),tip:$('tip'),status:$('statusText'),start:$('startModal'),pause:$('pauseModal'),over:$('gameOverModal')};
 const startBtn=$('startBtn'),authHint=$('authHint'),rewardContinueBtn=$('rewardContinueBtn');let auth='pending';
-const VERIFY_URL=window.EITAA_AUTH_VERIFY_URL||'https://api-tower.electrok.ir/';
 const ADIVERY_APP_ID = window.ADIVERY_APP_ID || '84ddec11-a227-417b-a6bc-14591707256b';
 const ADIVERY_REWARDED_PLACEMENT = window.ADIVERY_REWARDED_PLACEMENT || '903aec79-c36a-44a5-aaf9-74662ccf6981';
 function configureAdivery(){
   const api=window.Adivery;
-  if(!api||typeof api.configure!=='function')return null;
-  try{api.configure(ADIVERY_APP_ID);return api}catch(e){console.error('Adivery config error',e);return null}
+  if(!api || typeof api.configure!=='function') return null;
+  try { api.configure(ADIVERY_APP_ID); return api; } catch(error) { console.error('Adivery config error',error); return null; }
 }
 configureAdivery();
-
+const VERIFY_URL=window.EITAA_AUTH_VERIFY_URL || 'https://api-tower.electrok.ir/';
 async function verifyEitaaAuth(){const webApp=window.Eitaa?.WebApp;const initData=webApp?.initData;if(!initData){auth='failed';ui.status.textContent='لطفاً بازی را از داخل محیط ایتا باز کنید';authHint.textContent='ورود مستقیم از مرورگر پشتیبانی نمی‌شود؛ بازی را داخل ایتا باز کنید.';startBtn.disabled=true;startBtn.textContent='ورود از ایتا لازم است';return}ui.status.textContent='در حال تأیید امن ورود...';authHint.textContent='در حال بررسی حساب ایتای شما...';startBtn.disabled=true;startBtn.textContent='در حال بررسی...';try{const response=await fetch(VERIFY_URL,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({initData}),cache:'no-store',credentials:'omit'});let data={};try{data=await response.json()}catch(_e){}if(!response.ok||!(data.auth==='ok'||data.ok===true||data.valid===true))throw new Error('verification rejected');auth='ok';startBtn.disabled=false;startBtn.textContent='شروع بازی ✨';const welcomeKey='borjTaadoliWelcomeShown';let firstVisit=false;try{firstVisit=localStorage.getItem(welcomeKey)!=='1';if(firstVisit)localStorage.setItem(welcomeKey,'1')}catch(_e){firstVisit=true}if(firstVisit){ui.status.textContent='خوش آمدی! آماده‌ای برجت را بسازی؟';authHint.textContent='ورود شما با موفقیت تأیید شد؛ خوش آمدی!'}else{ui.status.textContent='ورود تأیید شد؛ آمادهٔ بازی هستی.';authHint.textContent='حساب شما تأیید شد. برای آغاز، دکمه را بزن.'}}catch(_e){auth='failed';ui.status.textContent='تأیید ورود ناموفق بود؛ لطفاً بازی را از داخل محیط ایتا باز کنید';authHint.textContent='ارتباط با سرور تأیید برقرار نشد یا ورود ایتا معتبر نبود. دوباره بازی را از داخل ایتا باز کنید.';startBtn.disabled=true;startBtn.textContent='تأیید ورود ناموفق'}}
 verifyEitaaAuth();
 const fa=n=>String(Math.max(0,Math.floor(n))).replace(/[0-9]/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]);
 let tg=null;try{if(window.Eitaa?.WebApp){tg=window.Eitaa.WebApp;tg.ready();tg.expand()}}catch(_e){}
 const haptic=k=>{try{tg?.HapticFeedback?.impactOccurred?.(k)}catch(_e){}},notify=k=>{try{tg?.HapticFeedback?.notificationOccurred?.(k)}catch(_e){}};
 const bestKey='borjTaadoliBest',legacyBestKeys=['borjTaadoliHighScore','borj-taadoli-high-score','towerBestScore'];let best=0;function loadBest(){try{let values=[bestKey,...legacyBestKeys].map(k=>Number(localStorage.getItem(k))).filter(n=>Number.isFinite(n)&&n>=0);best=Math.max(0,...values)}catch(_e){best=0}ui.high.textContent=fa(best)}function saveBest(){try{localStorage.setItem(bestKey,String(best));return true}catch(_e){return false}}loadBest();
-let rewardedUsedThisRun = false;
+let rewardedUsedThisRun=false;
 let W=0,H=0,dpr=1,scale=1,HANG_SCREEN_Y=67,camY=0,state='menu',score=0,blocks=[],particles=[],clouds=[],active=null,elapsed=0,last=0,combo=0,swingPhase=0,soundOn=true,audio=null,collapseTimer=0,spawnTimeout=null;
 const G=1050,RESTITUTION=.05,FRICTION=.8,colors=['#ff9eaf','#8edcc9','#ffd477','#91c9f7','#c5a8f4','#ffa875','#a7d989'];
 function resize(){let r=stage.getBoundingClientRect();W=r.width;H=r.height;dpr=Math.min(2,devicePixelRatio||1);canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);scale=Math.min(W/420,H/650)||1;HANG_SCREEN_Y=67*scale;if(!clouds.length)for(let i=0;i<10;i++)clouds.push({x:Math.random()*W,y:Math.random()*H,w:35+Math.random()*45,s:.15+Math.random()*.35})}
 addEventListener('resize',resize);resize();
 function sound(type){if(!soundOn)return;try{audio ||=new(window.AudioContext||window.webkitAudioContext)();if(audio.state==='suspended')audio.resume();let o=audio.createOscillator(),g=audio.createGain(),t=audio.currentTime,f={drop:360,land:170,perfect:620,crash:90,swing:260}[type]||300;o.type=type==='crash'?'sawtooth':'sine';o.frequency.setValueAtTime(f,t);if(type==='drop'||type==='crash')o.frequency.exponentialRampToValueAtTime(f*.55,t+.25);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(type==='perfect'?.11:.06,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+(type==='crash'?.4:.22));o.connect(g);g.connect(audio.destination);o.start(t);o.stop(t+.45)}catch(_e){}}
 function baseY(){return H-78}function platform(){return {x:W/2,w:W*.78,y:baseY(),h:18}}
-function startGame(){if(auth!=='ok')return;rewardedUsedThisRun=false;rewardContinueBtn.hidden=false;rewardContinueBtn.disabled=false;rewardContinueBtn.innerText='تماشای ویدیو و ادامه بازی 🎬';if(spawnTimeout!==null){clearTimeout(spawnTimeout);spawnTimeout=null}score=0;combo=0;camY=0;blocks=[];particles=[];elapsed=0;collapseTimer=0;swingPhase=0;last=0;let p=platform();blocks.push({x:p.x,y:p.y-p.h/2,w:p.w,h:p.h,m:p.w*p.h/6000,theta:0,vx:0,vy:0,omega:0,color:'#85d8bf',fixed:true});state='playing';active=null;ui.start.classList.add('hidden');ui.pause.classList.add('hidden');ui.over.classList.add('hidden');ui.status.textContent='تعادل برج را حفظ کن!';ui.tip.textContent='برای رها کردن مکعب، صفحه را لمس کن 👆';updateUI();spawn();registerBackButton();setBackButtonVisible(true)}
+function startGame(){if(auth!=='ok')return;rewardedUsedThisRun=false;rewardContinueBtn.hidden=false;rewardContinueBtn.disabled=false;rewardContinueBtn.textContent='تماشای ویدیو و ادامه بازی 🎬';if(spawnTimeout!==null){clearTimeout(spawnTimeout);spawnTimeout=null}score=0;combo=0;camY=0;blocks=[];particles=[];elapsed=0;collapseTimer=0;swingPhase=0;last=0;let p=platform();blocks.push({x:p.x,y:p.y-p.h/2,w:p.w,h:p.h,m:p.w*p.h/6000,theta:0,vx:0,vy:0,omega:0,color:'#85d8bf',fixed:true});state='playing';active=null;ui.start.classList.add('hidden');ui.pause.classList.add('hidden');ui.over.classList.add('hidden');ui.status.textContent='تعادل برج را حفظ کن!';ui.tip.textContent='برای رها کردن مکعب، صفحه را لمس کن 👆';updateUI();spawn();registerBackButton();setBackButtonVisible(true)}
 function spawn(){if(state!=='playing')return;let w=(46+Math.random()*35)*scale,h=(25+Math.random()*17)*scale,top=topBlock().y-topBlock().h/2;active={x:W/2,y:HANG_SCREEN_Y-camY,w,h,m:w*h/650,theta:0,vx:0,vy:0,color:colors[Math.floor(Math.random()*colors.length)],falling:false}}
 function topBlock(){return blocks[blocks.length-1]}function centerTower(){return{x:topBlock().x,y:topBlock().y-topBlock().h/2}}
 function drop(){if(state!=='playing'||!active||active.falling)return;active.falling=true;let amp=Math.min(W*.24,78*scale);active.vx=Math.cos(swingPhase)*amp*1.15;active.vx=Math.max(-58*scale,Math.min(58*scale,active.vx));active.vy=12;active.omega=0;ui.tip.textContent='در حال فرود...';sound('drop');haptic('soft')}
 let backButtonRegistered=false;function setBackButtonVisible(visible){try{if(!tg?.BackButton)return;if(visible)tg.BackButton.show();else tg.BackButton.hide()}catch(_e){}}function registerBackButton(){try{if(!tg?.BackButton||backButtonRegistered)return;tg.BackButton.offClick?.(onBack);tg.BackButton.onClick(onBack);backButtonRegistered=true}catch(_e){}}registerBackButton();setBackButtonVisible(false);function begin(){if(auth!=='ok')return;if(state==='menu'||state==='over')startGame()}function pause(){if(state==='playing'){state='paused';ui.pause.classList.remove('hidden');setBackButtonVisible(true)}}function resume(){if(state==='paused'){state='playing';ui.pause.classList.add('hidden');setBackButtonVisible(true)}}
 function onBack(){if(state==='playing'){pause();return}if(state==='paused'||state==='over'){toMenu();return}if(state==='menu')setBackButtonVisible(false)}function toMenu(){state='menu';active=null;if(spawnTimeout!==null){clearTimeout(spawnTimeout);spawnTimeout=null}ui.start.classList.remove('hidden');ui.pause.classList.add('hidden');ui.over.classList.add('hidden');setBackButtonVisible(false)}
 $('startBtn').onclick=begin;$('retryBtn').onclick=begin;$('pauseBtn').onclick=()=>state==='paused'?resume():pause();$('resumeBtn').onclick=resume;$('pauseMenuBtn').onclick=toMenu;$('overMenuBtn').onclick=toMenu;$('soundBtn').onclick=()=>{soundOn=!soundOn;$('soundBtn').textContent=soundOn?'🔊':'🔇';if(soundOn)sound('swing')};
-let rewardAdPending=false;
-const rewardButtonLabel='تماشای ویدیو و ادامه بازی 🎬';
-function restoreRewardButton(message){
-  rewardAdPending=false;
-  rewardContinueBtn.disabled=false;
-  rewardContinueBtn.innerText=rewardButtonLabel;
-  if(ui.tip)ui.tip.textContent=message;
-}
-function waitForAdivery(timeout=5000){
-  return new Promise(resolve=>{
-    const started=Date.now();
-    const check=()=>{
-      const api=window.Adivery;
-      if(api&&typeof api.configure==='function')return resolve(configureAdivery());
-      if(Date.now()-started>=timeout)return resolve(null);
-      setTimeout(check,100);
-    };
-    check();
-  });
-}
-async function continueWithReward(){
+rewardContinueBtn.onclick=async()=>{
   const btn=rewardContinueBtn;
-  if(rewardedUsedThisRun||rewardAdPending)return;
-  rewardAdPending=true;
+  if(rewardedUsedThisRun) return;
   btn.disabled=true;
-  btn.innerText='در حال آماده‌سازی تبلیغ...';
-  try{
-    const api=await waitForAdivery();
-    if(!api)throw new Error('SDK_NOT_READY');
-    if(typeof api.requestRewardedAd!=='function')throw new Error('REQUEST_UNAVAILABLE');
-    btn.innerText='در حال بارگذاری ویدیو...';
+  btn.textContent='در حال بارگذاری ویدیو...';
+  const resetButton=()=>{btn.disabled=false;btn.textContent='تماشای ویدیو و ادامه بازی 🎬'};
+  try {
+    const api=window.Adivery;
+    if(!api || typeof api.requestRewardedAd!=='function') throw new Error('Adivery rewarded SDK unavailable');
     const ad=await api.requestRewardedAd(ADIVERY_REWARDED_PLACEMENT);
-    if(!ad||typeof ad.show!=='function')throw new Error('SHOW_UNAVAILABLE');
-    btn.innerText='در حال نمایش تبلیغ...';
+    if(!ad || typeof ad.show!=='function') throw new Error('Adivery rewarded ad unavailable');
     const isRewarded=await ad.show();
-    if(isRewarded!==true){restoreRewardButton('برای دریافت شانس ادامه بازی باید ویدیو را تا انتها ببینید.');return}
-    rewardedUsedThisRun=true;
-    rewardAdPending=false;
-    if(ui.over)ui.over.classList.add('hidden');
-    state='playing';
-    active=null;
-    spawn();
-    if(typeof loop==='function'&&!animId)loop();
-  }catch(err){
-    console.error('Adivery rewarded ad error',err);
-    const message=err?.message==='SDK_NOT_READY'?'تبلیغ بارگذاری نشد؛ لطفاً دوباره تلاش کنید.':err?.message==='REQUEST_UNAVAILABLE'?'تبلیغ ادامه بازی در دسترس نیست؛ لطفاً دوباره تلاش کنید.':'خطا در پخش تبلیغ؛ لطفاً دوباره تلاش کنید.';
-    restoreRewardButton(message);
+    if(isRewarded===true){
+      rewardedUsedThisRun=true;
+      ui.over.classList.add('hidden');
+      state='playing';
+      active=null;
+      spawn();
+    }else{
+      alert('برای دریافت شانس ادامه بازی باید ویدیو را تا انتها ببینید.');
+      resetButton();
+    }
+  } catch(error) {
+    console.error('Adivery rewarded ad error',error);
+    alert('تبلیغ در دسترس نیست. لطفاً دوباره تلاش کنید.');
+    resetButton();
   }
-}
-if(rewardContinueBtn)rewardContinueBtn.addEventListener('click',continueWithReward);
+};
 $('shareBtn').onclick=async()=>{let text=`من در برج تعادلی ${fa(score)} امتیاز و ${fa(blocks.length-1)} طبقه ساختم! 🏗️`;try{if(navigator.share)await navigator.share({text});else if(tg?.switchInlineQuery)tg.switchInlineQuery(text);else{await navigator.clipboard.writeText(text);$('statusText').textContent='نتیجه کپی شد!'}}catch(_e){}};
 canvas.addEventListener('pointerdown',e=>{e.preventDefault();if(state==='playing')drop()});addEventListener('keydown',e=>{if(e.code==='Space'){e.preventDefault();if(state==='menu'||state==='over')begin();else drop()}if(e.code==='Escape')pause()});
 function addBurst(x,y,n=18){for(let i=0;i<n;i++){let a=Math.random()*Math.PI*2,v=50+Math.random()*150;particles.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-55,life:.55+Math.random()*.65,max:1.2,r:2+Math.random()*4,c:colors[Math.floor(Math.random()*colors.length)],star:Math.random()>.55})}}
@@ -90,7 +67,7 @@ function land(b,support,offset){let dx=Math.abs(offset),accuracy=dx/Math.max(1,s
 // Successful overlap is captured by the stack solver: zero bounce, high-friction, no runaway impulses.
 const perfect=accuracy<.13;score+=perfect?150+combo*35:Math.max(25,Math.round(100*(1-Math.min(accuracy,1))));if(perfect){combo++;addBurst(b.x,b.y,25);ui.status.textContent='تعادل عالی! +'+fa(150+combo*35);sound('perfect');notify('success')}else{combo=0;ui.status.textContent='خوب بود!';sound('land');haptic('medium')}blocks.push(b);active=null;ui.tip.textContent=perfect?'تعادل عالی! ✨':'مکعب بعدی در راه است';updateUI();if(spawnTimeout!==null)clearTimeout(spawnTimeout);spawnTimeout=setTimeout(()=>{spawnTimeout=null;if(state==='playing'&&!active)spawn()},300)}
 function updateUI(){ui.score.textContent=fa(score);if(score>best){best=score;saveBest()}ui.high.textContent=fa(best);ui.height.textContent=fa(Math.max(0,blocks.length-1))}
-function gameOver(){if(state!=='playing')return;state='over';active=null;if(rewardedUsedThisRun){rewardContinueBtn.hidden=true;rewardContinueBtn.disabled=true;rewardContinueBtn.innerText='فرصت ادامه با ویدیو مصرف شده'}else{rewardContinueBtn.hidden=false;rewardContinueBtn.disabled=false;rewardContinueBtn.innerText='تماشای ویدیو و ادامه بازی 🎬'}ui.over.classList.remove('hidden');ui.finalScore.textContent=fa(score);ui.finalHeight.textContent=fa(Math.max(0,blocks.length-1));ui.tip.textContent='برج سقوط کرد';sound('crash');notify('error');haptic('hard');if(score>best){best=score;saveBest()}ui.high.textContent=fa(best);if(spawnTimeout!==null){clearTimeout(spawnTimeout);spawnTimeout=null}setBackButtonVisible(true)}
+function gameOver(){if(state!=='playing')return;state='over';active=null;ui.over.classList.remove('hidden');ui.finalScore.textContent=fa(score);ui.finalHeight.textContent=fa(Math.max(0,blocks.length-1));ui.tip.textContent='برج سقوط کرد';sound('crash');notify('error');haptic('hard');if(score>best){best=score;saveBest()}ui.high.textContent=fa(best);if(spawnTimeout!==null){clearTimeout(spawnTimeout);spawnTimeout=null}setBackButtonVisible(true)}
 function physics(dt){if(state!=='playing')return;elapsed+=dt;swingPhase+=dt*1.15;let amp=Math.min(W*.24,78*scale),pendX=W/2+Math.sin(swingPhase)*amp;if(active&&!active.falling){active.x=pendX;active.y=HANG_SCREEN_Y-camY;active.theta=Math.sin(swingPhase)*.035}
 if(active?.falling){active.vy+=G*dt;active.x+=active.vx*dt;active.y+=active.vy*dt;active.vx*=Math.pow(FRICTION,dt*2.2);
 // Generous center-of-mass window; only catch blocks descending onto the current tower top.
